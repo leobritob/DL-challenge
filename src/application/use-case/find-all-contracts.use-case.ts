@@ -3,15 +3,15 @@ import { ContractRepository } from '../../domain/repository/contract.repository'
 import { RepositoryFactory } from '../../domain/repository/repository.factory';
 
 export class FindAllContractsUseCase {
-  contractRepository: ContractRepository;
+  private contractRepository: ContractRepository;
 
   constructor(private readonly repositoryFactory: RepositoryFactory) {
     this.contractRepository = this.repositoryFactory.createContractRepository();
   }
 
-  async execute(profileId: string) {
+  async execute(clientId: string) {
     return await this.contractRepository.findAll({
-      clientId: profileId,
+      clientId,
       status: [ContractStatusEnum.IN_PROGRESS, ContractStatusEnum.NEW],
     });
   }

@@ -42,46 +42,4 @@ describe('Job', () => {
     expect(job).toBeDefined();
     expect(job.id).toBeDefined();
   });
-
-  it('should be able to make the payment', () => {
-    // Arrange
-    const clientBalance = 1_214;
-    const client = new Profile({
-      firstName: 'Linus',
-      lastName: 'Torvalds',
-      balance: clientBalance,
-      profession: 'Programmer',
-      type: ProfileTypeEnum.CLIENT,
-    });
-    const contractorBalance = 451.3;
-    const contractor = new Profile({
-      firstName: 'John',
-      lastName: 'Snow',
-      balance: contractorBalance,
-      profession: 'Knows nothing',
-      type: ProfileTypeEnum.CONTRACTOR,
-    });
-    const contract = new Contract({
-      terms: 'remote job contract',
-      status: ContractStatusEnum.NEW,
-      client,
-      contractor,
-    });
-
-    // Act
-    const job = new Job({
-      description: 'create a saas platform',
-      price: 214,
-      paid: JobPaidEnum.NO,
-      paymentDate: new Date(2022, 11, 16),
-      contract,
-    });
-
-    // Act
-    job.pay();
-
-    // Assert
-    expect(client.balance).toBeLessThan(clientBalance);
-    expect(contractor.balance).toBeGreaterThan(contractorBalance);
-  });
 });

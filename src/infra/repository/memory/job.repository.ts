@@ -2,9 +2,12 @@ import { ContractStatusEnum } from '../../../domain/entity/contract/contract-sta
 import { Job } from '../../../domain/entity/job/job';
 import { JobPaidEnum } from '../../../domain/entity/job/job-paid.enum';
 import { JobRepository } from '../../../domain/repository/job.repository';
+import { DatabaseConnection } from '../../database/database';
 
 export class JobRepositoryMemory implements JobRepository {
   jobs: Job[] = [];
+
+  constructor(private readonly database: DatabaseConnection) {}
 
   create(job: Job): Promise<Job> {
     this.jobs.push(job);
@@ -23,9 +26,7 @@ export class JobRepositoryMemory implements JobRepository {
       result = result.filter((j) => j.paid === params.paid);
     }
     if (params?.contractStatus?.length) {
-      result = result.filter((j) =>
-        params.contractStatus!.includes(j.contract.status)
-      );
+      result = result.filter((j) => params.contractStatus!.includes(j.contract.status));
     }
     if (params?.clientId) {
       result = result.filter((j) => j.contract.client.id === params.clientId);
@@ -41,6 +42,14 @@ export class JobRepositoryMemory implements JobRepository {
     return Promise.resolve(job);
   }
 
+  async updateOneById(id: string, data: Partial<Job>) {
+    const jobIndex = this.jobs.findIndex((j) => j.id === id);
+    if (jobIndex < 0) {
+      throw new Error('Job not found');
+    }
+    this.jobs[jobIndex] = { ...this.jobs[jobIndex], ...data };
+  }
+
   bestProfession(params?: Partial<{ start: Date; end: Date; limit: number }>) {
     let jobs = [...this.jobs];
 
@@ -51,9 +60,7 @@ export class JobRepositoryMemory implements JobRepository {
       jobs = jobs.filter((job) => job.createdAt <= params.end!);
     }
     if (params?.start && params?.end) {
-      jobs = jobs.filter(
-        (job) => job.createdAt >= params.start! && job.createdAt <= params.end!
-      );
+      jobs = jobs.filter((job) => job.createdAt >= params.start! && job.createdAt <= params.end!);
     }
 
     let list = jobs
@@ -89,28 +96,23 @@ export class JobRepositoryMemory implements JobRepository {
       jobs = jobs.filter((job) => job.createdAt <= params.end!);
     }
     if (params?.start && params?.end) {
-      jobs = jobs.filter(
-        (job) => job.createdAt >= params.start! && job.createdAt <= params.end!
-      );
+      jobs = jobs.filter((job) => job.createdAt >= params.start! && job.createdAt <= params.end!);
     }
 
     let list = jobs
-      .reduce(
-        (all: { id: string; fullName: string; paid: number }[], current) => {
-          const { id, firstName, lastName } = current.contract.client;
+      .reduce((all: { id: string; fullName: string; paid: number }[], current) => {
+        const { id, firstName, lastName } = current.contract.client;
 
-          let allIndex = all.findIndex((job) => job.id === id);
-          if (allIndex < 0) {
-            const fullName = `${firstName} ${lastName}`;
-            all.push({ id, fullName, paid: 0 });
-            allIndex = all.length - 1;
-          }
-          all[allIndex].paid += current.price;
+        let allIndex = all.findIndex((job) => job.id === id);
+        if (allIndex < 0) {
+          const fullName = `${firstName} ${lastName}`;
+          all.push({ id, fullName, paid: 0 });
+          allIndex = all.length - 1;
+        }
+        all[allIndex].paid += current.price;
 
-          return all;
-        },
-        []
-      )
+        return all;
+      }, [])
       .sort((a, b) => b.paid - a.paid);
 
     if (params?.limit) {

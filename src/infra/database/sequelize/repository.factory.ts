@@ -2,23 +2,23 @@ import { ContractRepository } from '../../../domain/repository/contract.reposito
 import { JobRepository } from '../../../domain/repository/job.repository';
 import { ProfileRepository } from '../../../domain/repository/profile.repository';
 import { RepositoryFactory } from '../../../domain/repository/repository.factory';
-import { ContractRepositoryMemory } from '../../repository/memory/contract.repository';
-import { JobRepositoryMemory } from '../../repository/memory/job.repository';
-import { ProfileRepositoryMemory } from '../../repository/memory/profile.repository';
+import { SequelizeContractRepository } from '../../repository/sequelize/contract.repository';
+import { SequelizeJobRepository } from '../../repository/sequelize/job.repository';
+import { SequelizeProfileRepository } from '../../repository/sequelize/profile.repository';
 import { DatabaseConnection } from '../database';
 
-export class MemoryRepositoryFactory implements RepositoryFactory {
+export class SequelizeRepositoryFactory implements RepositoryFactory {
   constructor(private readonly database: DatabaseConnection) {}
 
   createContractRepository(): ContractRepository {
-    return new ContractRepositoryMemory(this.database);
+    return new SequelizeContractRepository(this.database);
   }
 
   createJobRepository(): JobRepository {
-    return new JobRepositoryMemory(this.database);
+    return new SequelizeJobRepository(this.database);
   }
 
   createProfileRepository(): ProfileRepository {
-    return new ProfileRepositoryMemory(this.database);
+    return new SequelizeProfileRepository(this.database);
   }
 }

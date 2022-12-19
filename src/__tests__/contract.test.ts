@@ -3,11 +3,14 @@ import { Profile } from '../domain/entity/profile/profile';
 import { ProfileTypeEnum } from '../domain/entity/profile/profile-type.enum';
 import { Contract } from '../domain/entity/contract/contract';
 import { ContractStatusEnum } from '../domain/entity/contract/contract-status.enum';
+import { createProfileFake } from './helper/create-profile.fake';
 
 describe('Contracts', () => {
   it('should be able to create a contract', () => {
     // Act
-    const contract = createContractFake();
+    const client = createProfileFake({ type: ProfileTypeEnum.CLIENT });
+    const contractor = createProfileFake({ type: ProfileTypeEnum.CONTRACTOR });
+    const contract = createContractFake({ client, contractor });
 
     // Assert
     expect(contract).toBeDefined();

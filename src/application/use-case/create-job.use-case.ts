@@ -1,14 +1,15 @@
+import { Job } from '../../domain/entity/job/job';
 import { JobRepository } from '../../domain/repository/job.repository';
 import { RepositoryFactory } from '../../domain/repository/repository.factory';
 
-export class BestClientUseCase {
+export class CreateJobUseCase {
   jobRepository: JobRepository;
 
   constructor(private readonly repositoryFactory: RepositoryFactory) {
     this.jobRepository = this.repositoryFactory.createJobRepository();
   }
 
-  async execute(params?: Partial<{ start: Date; end: Date; limit: number }>) {
-    return this.jobRepository.bestClient(params);
+  async execute(job: Job) {
+    return await this.jobRepository.create(job);
   }
 }

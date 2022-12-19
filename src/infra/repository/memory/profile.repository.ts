@@ -1,8 +1,11 @@
 import { Profile } from '../../../domain/entity/profile/profile';
 import { ProfileRepository } from '../../../domain/repository/profile.repository';
+import { DatabaseConnection } from '../../database/database';
 
 export class ProfileRepositoryMemory implements ProfileRepository {
   profiles: Profile[] = [];
+
+  constructor(private readonly database: DatabaseConnection) {}
 
   create(data: Profile): Promise<Profile> {
     this.profiles.push(data);
@@ -17,7 +20,7 @@ export class ProfileRepositoryMemory implements ProfileRepository {
     return Promise.resolve(profile);
   }
 
-  updateById(id: string, data: Partial<Profile>): Promise<Profile> {
+  async updateById(id: string, data: Partial<Profile>): Promise<void> {
     const profileIndex = this.profiles.findIndex((p) => p.id === id);
     if (profileIndex < 0 || !this.profiles[profileIndex]) {
       throw new Error('Profile not found');
@@ -37,6 +40,5 @@ export class ProfileRepositoryMemory implements ProfileRepository {
     if (data.type) {
       this.profiles[profileIndex].type = data.type;
     }
-    return Promise.resolve(this.profiles[profileIndex]);
   }
 }

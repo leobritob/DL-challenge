@@ -1,13 +1,14 @@
 import { Contract } from '../../../domain/entity/contract/contract';
 import { ContractStatusEnum } from '../../../domain/entity/contract/contract-status.enum';
 import { ContractRepository } from '../../../domain/repository/contract.repository';
+import { DatabaseConnection } from '../../database/database';
 
 export class ContractRepositoryMemory implements ContractRepository {
   contracts: Contract[] = [];
 
-  findAll(
-    params?: Partial<{ status: ContractStatusEnum[]; clientId: string }>
-  ): Promise<Contract[]> {
+  constructor(private readonly database: DatabaseConnection) {}
+
+  findAll(params?: Partial<{ status: ContractStatusEnum[]; clientId: string }>): Promise<Contract[]> {
     let result = [...this.contracts];
     if (params?.clientId) {
       result = result.filter((c) => c.client.id === params.clientId);

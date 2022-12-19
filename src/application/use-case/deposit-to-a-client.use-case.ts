@@ -15,7 +15,7 @@ export class DepositToAClientUseCase {
 
   async execute(clientId: string, amount: number) {
     const jobs = await this.jobRepository.findAll({
-      paid: JobPaidEnum.NO,
+      paid: JobPaidEnum.YES,
       contractStatus: [ContractStatusEnum.NEW, ContractStatusEnum.IN_PROGRESS],
       clientId,
     });
@@ -24,9 +24,7 @@ export class DepositToAClientUseCase {
     const depositLimit = jobsToPay * percentageAllowed;
 
     if (amount > depositLimit) {
-      throw new Error(
-        "You can't deposit more than 25% of the total of jobs you have to pay"
-      );
+      throw new Error("You can't deposit more than 25% of the total of jobs you have to pay");
     }
     const profile = await this.profileRepository.findOneById(clientId);
     const balance = profile.balance + amount;
