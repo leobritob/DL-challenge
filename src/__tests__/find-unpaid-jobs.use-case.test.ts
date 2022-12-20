@@ -1,12 +1,12 @@
 import { FindUnpaidJobsUseCase } from '../application/use-case/find-unpaid-jobs.use-case';
-import { Job } from '../domain/entity/job/job';
 import { ProfileTypeEnum } from '../domain/entity/profile/profile-type.enum';
 import { ContractRepository } from '../domain/repository/contract.repository';
+import { JobRepository } from '../domain/repository/job.repository';
 import { ProfileRepository } from '../domain/repository/profile.repository';
 import { RepositoryFactory } from '../domain/repository/repository.factory';
 import { DatabaseConnection } from '../infra/database/database';
-import { SequelizeDatabase } from '../infra/database/sequelize/database';
-import { SequelizeRepositoryFactory } from '../infra/database/sequelize/repository.factory';
+import { MemoryDatabase } from '../infra/database/memory/database';
+import { MemoryRepositoryFactory } from '../infra/database/memory/repository.factory';
 import { createContractFake } from './helper/create-contract.fake';
 import { createJobFake } from './helper/create-job.fake';
 import { createProfileFake } from './helper/create-profile.fake';
@@ -16,14 +16,19 @@ describe('FindUnpaidJobsUseCase', () => {
   let repositoryFactory: RepositoryFactory;
   let contractRepository: ContractRepository;
   let profileRepository: ProfileRepository;
+  let jobRepository: JobRepository;
+
+  beforeAll(async () => {
+    database = new MemoryDatabase();
+    await database.connect();
+  });
 
   beforeEach(async () => {
-    database = new SequelizeDatabase();
-    await database.connect();
     await database.sync();
-    repositoryFactory = new SequelizeRepositoryFactory(database);
+    repositoryFactory = new MemoryRepositoryFactory(database);
     contractRepository = repositoryFactory.createContractRepository();
     profileRepository = repositoryFactory.createProfileRepository();
+    jobRepository = repositoryFactory.createJobRepository();
   });
 
   it('should be able to return an unpaid jobs list', async () => {
@@ -34,11 +39,11 @@ describe('FindUnpaidJobsUseCase', () => {
     const contractor = createProfileFake({ type: ProfileTypeEnum.CONTRACTOR });
     await Promise.all([profileRepository.create(contractor), profileRepository.create(client)]);
 
-    const contract = createContractFake({ client, contractor });
+    const contract = createContractFake({ clientId: client.id, contractorId: contractor.id });
     await contractRepository.create(contract);
 
-    const job = createJobFake({ contract });
-    await useCase.jobRepository.create(job);
+    const job = createJobFake({ contractId: contract.id });
+    await jobRepository.create(job);
 
     // Act
     const result = await useCase.execute();

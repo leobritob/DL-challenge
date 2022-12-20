@@ -2,8 +2,8 @@ import { RepositoryFactory } from '../domain/repository/repository.factory';
 import { createContractFake } from './helper/create-contract.fake';
 import { CreateContractUseCase } from '../application/use-case/create-contract.use-case';
 import { DatabaseConnection } from '../infra/database/database';
-import { SequelizeDatabase } from '../infra/database/sequelize/database';
-import { SequelizeRepositoryFactory } from '../infra/database/sequelize/repository.factory';
+import { MemoryDatabase } from '../infra/database/memory/database';
+import { MemoryRepositoryFactory } from '../infra/database/memory/repository.factory';
 import { ProfileTypeEnum } from '../domain/entity/profile/profile-type.enum';
 import { createProfileFake } from './helper/create-profile.fake';
 import { ProfileRepository } from '../domain/repository/profile.repository';
@@ -13,11 +13,14 @@ describe('CreateContractUseCase', () => {
   let repositoryFactory: RepositoryFactory;
   let profileRepository: ProfileRepository;
 
-  beforeEach(async () => {
-    database = new SequelizeDatabase();
+  beforeAll(async () => {
+    database = new MemoryDatabase();
     await database.connect();
+  });
+
+  beforeEach(async () => {
     await database.sync();
-    repositoryFactory = new SequelizeRepositoryFactory(database);
+    repositoryFactory = new MemoryRepositoryFactory(database);
     profileRepository = repositoryFactory.createProfileRepository();
   });
 

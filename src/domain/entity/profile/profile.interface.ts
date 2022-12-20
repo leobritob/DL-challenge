@@ -1,7 +1,7 @@
 import { ProfileTypeEnum } from './profile-type.enum';
 
 export interface ProfileInterface {
-  id: string;
+  id?: string;
   firstName: string;
   lastName: string;
   profession: string;

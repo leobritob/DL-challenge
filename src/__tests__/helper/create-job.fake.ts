@@ -7,6 +7,7 @@ export function createJobFake(params?: Partial<Job>) {
     price: 214,
     paid: JobPaidEnum.NO,
     paymentDate: new Date(2022, 11, 16),
+    contractId: params.contractId,
     contract: params.contract,
     ...params,
   });

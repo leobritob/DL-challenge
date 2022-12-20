@@ -3,9 +3,11 @@ import { ProfileRepository } from '../../../domain/repository/profile.repository
 import { DatabaseConnection } from '../../database/database';
 
 export class ProfileRepositoryMemory implements ProfileRepository {
-  profiles: Profile[] = [];
+  profiles: Profile[];
 
-  constructor(private readonly database: DatabaseConnection) {}
+  constructor(private readonly database: DatabaseConnection) {
+    this.profiles = this.database.getModels().profiles;
+  }
 
   create(data: Profile): Promise<Profile> {
     this.profiles.push(data);

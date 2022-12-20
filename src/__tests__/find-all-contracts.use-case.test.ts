@@ -4,8 +4,8 @@ import { ContractRepository } from '../domain/repository/contract.repository';
 import { ProfileRepository } from '../domain/repository/profile.repository';
 import { RepositoryFactory } from '../domain/repository/repository.factory';
 import { DatabaseConnection } from '../infra/database/database';
-import { SequelizeDatabase } from '../infra/database/sequelize/database';
-import { SequelizeRepositoryFactory } from '../infra/database/sequelize/repository.factory';
+import { MemoryDatabase } from '../infra/database/memory/database';
+import { MemoryRepositoryFactory } from '../infra/database/memory/repository.factory';
 import { createContractFake } from './helper/create-contract.fake';
 import { createProfileFake } from './helper/create-profile.fake';
 
@@ -15,11 +15,14 @@ describe('FindAllContractsUseCase', () => {
   let contractRepository: ContractRepository;
   let profileRepository: ProfileRepository;
 
-  beforeEach(async () => {
-    database = new SequelizeDatabase();
+  beforeAll(async () => {
+    database = new MemoryDatabase();
     await database.connect();
+  });
+
+  beforeEach(async () => {
     await database.sync();
-    repositoryFactory = new SequelizeRepositoryFactory(database);
+    repositoryFactory = new MemoryRepositoryFactory(database);
     contractRepository = repositoryFactory.createContractRepository();
     profileRepository = repositoryFactory.createProfileRepository();
   });
@@ -32,7 +35,7 @@ describe('FindAllContractsUseCase', () => {
     const contractor = createProfileFake({ type: ProfileTypeEnum.CONTRACTOR });
     await Promise.all([profileRepository.create(client), profileRepository.create(contractor)]);
 
-    const contract = createContractFake({ client, contractor });
+    const contract = createContractFake({ clientId: client.id, contractorId: contractor.id });
     await contractRepository.create(contract);
 
     // Act

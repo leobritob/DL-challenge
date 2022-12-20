@@ -9,7 +9,7 @@ export async function main() {
   const repositoryFactory = new SequelizeRepositoryFactory(database);
   const http = new ExpressHttp(repositoryFactory);
   new Routes(http, repositoryFactory);
-  await http.listen(3333);
+  http.listen(3333);
 }
 
 main();

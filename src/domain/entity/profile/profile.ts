@@ -10,14 +10,7 @@ export class Profile {
   balance: number;
   type: ProfileTypeEnum;
 
-  constructor({
-    id,
-    firstName,
-    lastName,
-    profession,
-    balance,
-    type,
-  }: Omit<ProfileInterface, 'id'> & Partial<{ id: string }>) {
+  constructor({ id, firstName, lastName, profession, balance, type }: ProfileInterface) {
     this.id = id || randomUUID();
     this.firstName = firstName;
     this.lastName = lastName;

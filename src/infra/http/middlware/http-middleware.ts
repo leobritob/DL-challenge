@@ -1,3 +1,5 @@
+import { HttpNext, HttpRequest, HttpResponse } from '../http';
+
 export interface HttpMiddleware {
-  use(req, res, next): any;
+  use(req: HttpRequest, res: HttpResponse, next: HttpNext): any;
 }

@@ -8,17 +8,12 @@ export class Contract {
   id: string;
   terms: string;
   status: ContractStatusEnum;
-  client: Partial<Profile>;
-  contractor: Partial<Profile>;
+  clientId: string;
+  client: Profile;
+  contractorId: string;
+  contractor: Profile;
 
-  constructor({
-    id,
-    terms,
-    status,
-    client,
-    contractor,
-  }: Omit<ContractInterface, 'id' | 'client' | 'contractor'> &
-    Partial<{ id: string; client: Partial<Profile>; contractor: Partial<Profile> }>) {
+  constructor({ id, terms, status, client, contractor, contractorId, clientId }: ContractInterface) {
     if (client?.type && client?.type !== ProfileTypeEnum.CLIENT) {
       throw new Error('Client must be a "client" profile type');
     }
@@ -29,12 +24,10 @@ export class Contract {
     this.id = id || randomUUID();
     this.terms = terms;
     this.status = status;
-    if (client) {
-      this.client = client;
-    }
-    if (contractor) {
-      this.contractor = contractor;
-    }
+    this.contractorId = contractorId;
+    this.clientId = clientId;
+    this.client = client;
+    this.contractor = contractor;
   }
 
   getIsActive() {

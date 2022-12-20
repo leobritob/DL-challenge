@@ -6,8 +6,8 @@ import { JobRepository } from '../domain/repository/job.repository';
 import { ProfileRepository } from '../domain/repository/profile.repository';
 import { RepositoryFactory } from '../domain/repository/repository.factory';
 import { DatabaseConnection } from '../infra/database/database';
-import { SequelizeDatabase } from '../infra/database/sequelize/database';
-import { SequelizeRepositoryFactory } from '../infra/database/sequelize/repository.factory';
+import { MemoryDatabase } from '../infra/database/memory/database';
+import { MemoryRepositoryFactory } from '../infra/database/memory/repository.factory';
 import { createContractFake } from './helper/create-contract.fake';
 import { createJobFake } from './helper/create-job.fake';
 import { createProfileFake } from './helper/create-profile.fake';
@@ -19,11 +19,14 @@ describe('BestProfessionUseCase', () => {
   let profileRepository: ProfileRepository;
   let contractRepository: ContractRepository;
 
-  beforeEach(async () => {
-    database = new SequelizeDatabase();
+  beforeAll(async () => {
+    database = new MemoryDatabase();
     await database.connect();
+  });
+
+  beforeEach(async () => {
     await database.sync();
-    repositoryFactory = new SequelizeRepositoryFactory(database);
+    repositoryFactory = new MemoryRepositoryFactory(database);
     jobRepository = repositoryFactory.createJobRepository();
     profileRepository = repositoryFactory.createProfileRepository();
     contractRepository = repositoryFactory.createContractRepository();
@@ -32,19 +35,27 @@ describe('BestProfessionUseCase', () => {
   it('should be able to return the best profession', async () => {
     // Arrange
     const useCase = new BestProfessionUseCase(repositoryFactory);
+
     const client = createProfileFake({ profession: 'Manager', type: ProfileTypeEnum.CLIENT });
     const contractor = createProfileFake({ profession: 'UX', type: ProfileTypeEnum.CONTRACTOR });
     const contractor2 = createProfileFake({ profession: 'Programmer', type: ProfileTypeEnum.CONTRACTOR });
-    const contract = createContractFake({ client, contractor });
-    const contract2 = createContractFake({ client, contractor: contractor2 });
-    const job = createJobFake({ paid: JobPaidEnum.YES, paymentDate: new Date(), price: 90, contract });
-    const job2 = createJobFake({ paid: JobPaidEnum.YES, paymentDate: new Date(), price: 100, contract: contract2 });
     await Promise.all([
       profileRepository.create(client),
       profileRepository.create(contractor),
       profileRepository.create(contractor2),
     ]);
+
+    const contract = createContractFake({ clientId: client.id, contractorId: contractor.id });
+    const contract2 = createContractFake({ clientId: client.id, contractorId: contractor2.id });
     await Promise.all([contractRepository.create(contract), contractRepository.create(contract2)]);
+
+    const job = createJobFake({ paid: JobPaidEnum.YES, paymentDate: new Date(), price: 90, contractId: contract.id });
+    const job2 = createJobFake({
+      paid: JobPaidEnum.YES,
+      paymentDate: new Date(),
+      price: 100,
+      contractId: contract2.id,
+    });
     await Promise.all([jobRepository.create(job), jobRepository.create(job2)]);
 
     const start = new Date();

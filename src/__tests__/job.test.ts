@@ -35,6 +35,7 @@ describe('Job', () => {
       price: 10_000,
       paid: JobPaidEnum.NO,
       paymentDate: new Date(2022, 11, 16),
+      contractId: contract.id,
       contract,
     });
 

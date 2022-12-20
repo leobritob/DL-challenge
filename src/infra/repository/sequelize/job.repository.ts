@@ -19,15 +19,20 @@ export class SequelizeJobRepository implements JobRepository {
   }
 
   async create(data: Job): Promise<Job> {
-    await this.model.create({
-      id: data.id,
-      description: data.description,
-      price: data.price,
-      paid: data.paid,
-      paymentDate: data.paymentDate,
-      createdAt: data.createdAt,
-      ContractId: data.contractId,
-    });
+    await this.model.create(
+      {
+        id: data.id,
+        description: data.description,
+        price: data.price,
+        paid: data.paid,
+        paymentDate: data.paymentDate,
+        createdAt: data.createdAt,
+        ContractId: data.contractId,
+      },
+      {
+        include: [{ association: JobModel.Contract, as: 'Contract', foreignKey: 'ContractId' }],
+      }
+    );
     return data;
   }
 
@@ -99,7 +104,9 @@ export class SequelizeJobRepository implements JobRepository {
         id: res.dataValues.Contract.id,
         terms: res.dataValues.Contract.terms,
         status: res.dataValues.Contract.status,
+        clientId: res.dataValues.ClientId,
         client: new Profile(res.dataValues.Contract.Client),
+        contractorId: res.dataValues.ContractorId,
         contractor: new Profile(res.dataValues.Contract.Contractor),
       }),
     });
@@ -169,12 +176,10 @@ export class SequelizeJobRepository implements JobRepository {
       raw: true,
     });
 
-    return res.map((item: any) => {
-      return {
-        id: item.id,
-        fullName: `${item['Contract.Client.firstName']} ${item['Contract.Client.lastName']}`,
-        paid: item.earned,
-      };
-    });
+    return res.map((item: any) => ({
+      id: item.id,
+      fullName: `${item['Contract.Client.firstName']} ${item['Contract.Client.lastName']}`,
+      paid: item.earned,
+    }));
   }
 }

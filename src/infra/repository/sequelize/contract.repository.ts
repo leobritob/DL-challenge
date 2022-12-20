@@ -25,20 +25,30 @@ export class SequelizeContractRepository implements ContractRepository {
         id: item.dataValues.id,
         terms: item.dataValues.terms,
         status: item.dataValues.status,
+        contractorId: item.dataValues.ContractorId,
         contractor: item.dataValues?.Contractor,
+        clientId: item.dataValues.ClientId,
         client: item.dataValues?.Client,
       });
     });
   }
 
   async create(data: Contract): Promise<Contract> {
-    await this.model.create({
-      id: data.id,
-      terms: data.terms,
-      status: data.status,
-      ContractorId: data.contractor.id,
-      ClientId: data.client.id,
-    });
+    await this.model.create(
+      {
+        id: data.id,
+        terms: data.terms,
+        status: data.status,
+        ContractorId: data.contractorId,
+        ClientId: data.clientId,
+      },
+      {
+        include: [
+          { association: ContractModel.Contractor, as: 'Contractor', foreignKey: 'ContractorId' },
+          { association: ContractModel.Client, as: 'Client', foreignKey: 'ClientId' },
+        ],
+      }
+    );
     return data;
   }
 
@@ -55,7 +65,9 @@ export class SequelizeContractRepository implements ContractRepository {
     const contract = res.toJSON();
     return new Contract({
       ...contract,
+      clientId: contract.ClientId,
       client: contract.Client,
+      contractorId: contract.ContractorId,
       contractor: contract.Contractor,
     });
   }

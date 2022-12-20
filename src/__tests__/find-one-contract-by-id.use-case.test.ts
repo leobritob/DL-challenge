@@ -4,8 +4,8 @@ import { ContractRepository } from '../domain/repository/contract.repository';
 import { ProfileRepository } from '../domain/repository/profile.repository';
 import { RepositoryFactory } from '../domain/repository/repository.factory';
 import { DatabaseConnection } from '../infra/database/database';
-import { SequelizeDatabase } from '../infra/database/sequelize/database';
-import { SequelizeRepositoryFactory } from '../infra/database/sequelize/repository.factory';
+import { MemoryDatabase } from '../infra/database/memory/database';
+import { MemoryRepositoryFactory } from '../infra/database/memory/repository.factory';
 import { createContractFake } from './helper/create-contract.fake';
 import { createProfileFake } from './helper/create-profile.fake';
 
@@ -15,11 +15,14 @@ describe('FindOneContractByIdUseCase', () => {
   let profileRepository: ProfileRepository;
   let contractRepository: ContractRepository;
 
-  beforeEach(async () => {
-    database = new SequelizeDatabase();
+  beforeAll(async () => {
+    database = new MemoryDatabase();
     await database.connect();
+  });
+
+  beforeEach(async () => {
     await database.sync();
-    repositoryFactory = new SequelizeRepositoryFactory(database);
+    repositoryFactory = new MemoryRepositoryFactory(database);
     profileRepository = repositoryFactory.createProfileRepository();
     contractRepository = repositoryFactory.createContractRepository();
   });
@@ -32,11 +35,11 @@ describe('FindOneContractByIdUseCase', () => {
     const contractor = createProfileFake({ type: ProfileTypeEnum.CONTRACTOR });
     await Promise.all([profileRepository.create(client), profileRepository.create(contractor)]);
 
-    const contract = createContractFake({ client, contractor });
+    const contract = createContractFake({ clientId: client.id, contractorId: contractor.id });
     await contractRepository.create(contract);
 
     // Act
-    const result = await useCase.execute(contract.id, contract.client.id);
+    const result = await useCase.execute(contract.id, contract.clientId);
 
     // Assert
     expect(result).toBeDefined();
@@ -51,7 +54,7 @@ describe('FindOneContractByIdUseCase', () => {
     const contractor = createProfileFake({ type: ProfileTypeEnum.CONTRACTOR });
     await Promise.all([profileRepository.create(client), profileRepository.create(contractor)]);
 
-    const contract = createContractFake({ client, contractor });
+    const contract = createContractFake({ clientId: client.id, contractorId: contractor.id });
     await contractRepository.create(contract);
 
     const clientId = '57fd3e8f-183d-4320-ba80-344a487c6d5d';

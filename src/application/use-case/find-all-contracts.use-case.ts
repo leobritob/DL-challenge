@@ -3,7 +3,7 @@ import { ContractRepository } from '../../domain/repository/contract.repository'
 import { RepositoryFactory } from '../../domain/repository/repository.factory';
 
 export class FindAllContractsUseCase {
-  private contractRepository: ContractRepository;
+  contractRepository: ContractRepository;
 
   constructor(private readonly repositoryFactory: RepositoryFactory) {
     this.contractRepository = this.repositoryFactory.createContractRepository();

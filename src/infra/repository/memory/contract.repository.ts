@@ -6,12 +6,14 @@ import { DatabaseConnection } from '../../database/database';
 export class ContractRepositoryMemory implements ContractRepository {
   contracts: Contract[] = [];
 
-  constructor(private readonly database: DatabaseConnection) {}
+  constructor(private readonly database: DatabaseConnection) {
+    this.contracts = this.database.getModels().contracts;
+  }
 
   findAll(params?: Partial<{ status: ContractStatusEnum[]; clientId: string }>): Promise<Contract[]> {
     let result = [...this.contracts];
     if (params?.clientId) {
-      result = result.filter((c) => c.client.id === params.clientId);
+      result = result.filter((c) => c.clientId === params.clientId);
     }
     if (params?.status?.length) {
       result = result.filter((c) => params!.status!.includes(c.status));

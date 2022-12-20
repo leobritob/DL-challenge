@@ -1,13 +1,21 @@
+import { Contract } from '../../../domain/entity/contract/contract';
 import { ContractStatusEnum } from '../../../domain/entity/contract/contract-status.enum';
 import { Job } from '../../../domain/entity/job/job';
 import { JobPaidEnum } from '../../../domain/entity/job/job-paid.enum';
+import { Profile } from '../../../domain/entity/profile/profile';
 import { JobRepository } from '../../../domain/repository/job.repository';
 import { DatabaseConnection } from '../../database/database';
 
 export class JobRepositoryMemory implements JobRepository {
-  jobs: Job[] = [];
+  jobs: Job[];
+  profiles: Profile[];
+  contracts: Contract[];
 
-  constructor(private readonly database: DatabaseConnection) {}
+  constructor(private readonly database: DatabaseConnection) {
+    this.jobs = this.database.getModels().jobs;
+    this.profiles = this.database.getModels().profiles;
+    this.contracts = this.database.getModels().contracts;
+  }
 
   create(job: Job): Promise<Job> {
     this.jobs.push(job);
@@ -22,6 +30,11 @@ export class JobRepositoryMemory implements JobRepository {
     }>
   ): Promise<Job[]> {
     let result = [...this.jobs];
+    result = result.map((r) => {
+      const contract = this.contracts.find((c) => c.id === r.contractId);
+      return { ...r, contract };
+    });
+
     if (params?.paid) {
       result = result.filter((j) => j.paid === params.paid);
     }
@@ -39,6 +52,9 @@ export class JobRepositoryMemory implements JobRepository {
     if (!job) {
       throw new Error('Job not found');
     }
+    job.contract = this.contracts.find((c) => c.id === job.contractId);
+    job.contract.client = this.profiles.find((p) => p.id === job.contract.clientId);
+    job.contract.contractor = this.profiles.find((p) => p.id === job.contract.contractorId);
     return Promise.resolve(job);
   }
 
@@ -66,7 +82,10 @@ export class JobRepositoryMemory implements JobRepository {
     let list = jobs
       .reduce((all: { profession: string; earned: number }[], current) => {
         const { price } = current;
-        const { profession } = current.contract.contractor;
+
+        const contract = this.contracts.find((c) => c.id === current.contractId);
+        const contractor = this.profiles.find((p) => p.id === contract.contractorId);
+        const { profession } = contractor;
 
         let allIndex = all.findIndex((j) => j.profession === profession);
         if (allIndex < 0) {
@@ -101,7 +120,9 @@ export class JobRepositoryMemory implements JobRepository {
 
     let list = jobs
       .reduce((all: { id: string; fullName: string; paid: number }[], current) => {
-        const { id, firstName, lastName } = current.contract.client;
+        const contract = this.contracts.find((c) => c.id === current.contractId);
+        const client = this.profiles.find((p) => p.id === contract.clientId);
+        const { id, firstName, lastName } = client;
 
         let allIndex = all.findIndex((job) => job.id === id);
         if (allIndex < 0) {

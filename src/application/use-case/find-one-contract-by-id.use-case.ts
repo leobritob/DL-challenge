@@ -10,7 +10,7 @@ export class FindOneContractByIdUseCase {
 
   async execute(id: string, profileId: string) {
     const contract = await this.contractRepository.findOneById(id);
-    if (contract.client.id !== profileId) {
+    if (contract.clientId !== profileId) {
       throw new Error('Contract not found');
     }
     return contract;

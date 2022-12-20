@@ -26,16 +26,17 @@ export class ExpressHttp implements Http {
   }
 
   route(method: string, url: string, ...callback: Array<(req: any, res: any, next: any) => Promise<any>>): any {
-    this.applyMiddlewares(url, ...callback);
+    this.applyMiddlewares(url, callback);
     return this.app[method](url, callback);
   }
 
-  private applyMiddlewares(url: string, ...callback: Array<(req: any, res: any, next: any) => Promise<any>>) {
+  private applyMiddlewares(url: string, callback: Array<(req: any, res: any, next: any) => Promise<any>>) {
     HttpMiddlewares.forEach((MiddlewareClass) => {
       const regexp = pathToRegexp(url);
-      if (MiddlewareClass.paths.some((url) => regexp.exec(url))) {
+      const urlMatched = MiddlewareClass.paths.some((url) => regexp.exec(url));
+      if (urlMatched) {
         const middleware = new MiddlewareClass(this.repositoryFactory);
-        callback.unshift(middleware.use);
+        callback.unshift(middleware.use.bind(middleware));
       }
     });
   }

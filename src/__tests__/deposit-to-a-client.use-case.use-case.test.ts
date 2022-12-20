@@ -6,8 +6,8 @@ import { JobRepository } from '../domain/repository/job.repository';
 import { ProfileRepository } from '../domain/repository/profile.repository';
 import { RepositoryFactory } from '../domain/repository/repository.factory';
 import { DatabaseConnection } from '../infra/database/database';
-import { SequelizeDatabase } from '../infra/database/sequelize/database';
-import { SequelizeRepositoryFactory } from '../infra/database/sequelize/repository.factory';
+import { MemoryDatabase } from '../infra/database/memory/database';
+import { MemoryRepositoryFactory } from '../infra/database/memory/repository.factory';
 import { createContractFake } from './helper/create-contract.fake';
 import { createJobFake } from './helper/create-job.fake';
 import { createProfileFake } from './helper/create-profile.fake';
@@ -19,11 +19,14 @@ describe('DepositToAClientUseCase', () => {
   let contractRepository: ContractRepository;
   let profileRepository: ProfileRepository;
 
-  beforeEach(async () => {
-    database = new SequelizeDatabase();
+  beforeAll(async () => {
+    database = new MemoryDatabase();
     await database.connect();
+  });
+
+  beforeEach(async () => {
     await database.sync();
-    repositoryFactory = new SequelizeRepositoryFactory(database);
+    repositoryFactory = new MemoryRepositoryFactory(database);
     jobRepository = repositoryFactory.createJobRepository();
     contractRepository = repositoryFactory.createContractRepository();
     profileRepository = repositoryFactory.createProfileRepository();
@@ -32,12 +35,21 @@ describe('DepositToAClientUseCase', () => {
   it('should be able to deposit an amount to client balance', async () => {
     // Arrange
     const useCase = new DepositToAClientUseCase(repositoryFactory);
+
     const client = createProfileFake({ balance: 100, type: ProfileTypeEnum.CLIENT });
     const contractor = createProfileFake({ type: ProfileTypeEnum.CONTRACTOR });
     await Promise.all([profileRepository.create(client), profileRepository.create(contractor)]);
-    const contract = createContractFake({ client, contractor });
+
+    const contract = createContractFake({ clientId: client.id, client, contractorId: contractor.id, contractor });
     await contractRepository.create(contract);
-    const job = createJobFake({ paid: JobPaidEnum.YES, paymentDate: new Date(), price: 90, contract });
+
+    const job = createJobFake({
+      paid: JobPaidEnum.YES,
+      paymentDate: new Date(),
+      price: 90,
+      contractId: contract.id,
+      contract,
+    });
     await jobRepository.create(job);
 
     const clientBalance = client.balance;
@@ -61,9 +73,15 @@ describe('DepositToAClientUseCase', () => {
     const client = createProfileFake({ type: ProfileTypeEnum.CLIENT });
     const contractor = createProfileFake({ type: ProfileTypeEnum.CONTRACTOR });
     await Promise.all([profileRepository.create(client), profileRepository.create(contractor)]);
-    const contract = createContractFake({ client, contractor });
+    const contract = createContractFake({ clientId: client.id, client, contractorId: contractor.id, contractor });
     await contractRepository.create(contract);
-    const job = createJobFake({ paid: JobPaidEnum.YES, paymentDate: new Date(), price: 90, contract });
+    const job = createJobFake({
+      paid: JobPaidEnum.YES,
+      paymentDate: new Date(),
+      price: 90,
+      contractId: contract.id,
+      contract,
+    });
     await jobRepository.create(job);
 
     const clientId = client.id;

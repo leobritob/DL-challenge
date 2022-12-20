@@ -6,8 +6,8 @@ import { JobRepository } from '../domain/repository/job.repository';
 import { ProfileRepository } from '../domain/repository/profile.repository';
 import { RepositoryFactory } from '../domain/repository/repository.factory';
 import { DatabaseConnection } from '../infra/database/database';
-import { SequelizeDatabase } from '../infra/database/sequelize/database';
-import { SequelizeRepositoryFactory } from '../infra/database/sequelize/repository.factory';
+import { MemoryDatabase } from '../infra/database/memory/database';
+import { MemoryRepositoryFactory } from '../infra/database/memory/repository.factory';
 import { createContractFake } from './helper/create-contract.fake';
 import { createJobFake } from './helper/create-job.fake';
 import { createProfileFake } from './helper/create-profile.fake';
@@ -19,11 +19,14 @@ describe('PayForAJobUseCase', () => {
   let profileRepository: ProfileRepository;
   let contractRepository: ContractRepository;
 
-  beforeEach(async () => {
-    database = new SequelizeDatabase();
+  beforeAll(async () => {
+    database = new MemoryDatabase();
     await database.connect();
+  });
+
+  beforeEach(async () => {
     await database.sync();
-    repositoryFactory = new SequelizeRepositoryFactory(database);
+    repositoryFactory = new MemoryRepositoryFactory(database);
     jobRepository = repositoryFactory.createJobRepository();
     profileRepository = repositoryFactory.createProfileRepository();
     contractRepository = repositoryFactory.createContractRepository();
@@ -32,21 +35,51 @@ describe('PayForAJobUseCase', () => {
   it('should be able to pay a job for an user', async () => {
     // Arrange
     const useCase = new PayForAJobUseCase(repositoryFactory);
+
     const client = createProfileFake({ balance: 100, type: ProfileTypeEnum.CLIENT });
+    const currentClientBalance = client.balance;
     const contractor = createProfileFake({ balance: 50, type: ProfileTypeEnum.CONTRACTOR });
+    const currentContractorBalance = contractor.balance;
     await Promise.all([profileRepository.create(client), profileRepository.create(contractor)]);
-    const contract = createContractFake({ client, contractor });
+
+    const contract = createContractFake({ clientId: client.id, contractorId: contractor.id });
     await contractRepository.create(contract);
-    const job = createJobFake({ paid: JobPaidEnum.YES, paymentDate: new Date(), price: 50, contract });
+
+    const job = createJobFake({ paid: JobPaidEnum.NO, paymentDate: new Date(), price: 50, contractId: contract.id });
     await jobRepository.create(job);
 
     // Act
     await useCase.execute(job.id);
 
     // Assert
-    const updatedClient = await profileRepository.findOneById(client.id);
-    const updatedContractor = await profileRepository.findOneById(contractor.id);
-    expect(updatedContractor.balance).toBeGreaterThan(contractor.balance);
-    expect(updatedClient.balance).toBeLessThan(client.balance);
+    const [updatedClient, updatedContractor] = await Promise.all([
+      profileRepository.findOneById(client.id),
+      profileRepository.findOneById(contractor.id),
+    ]);
+    expect(updatedContractor.balance).toBeGreaterThan(currentContractorBalance);
+    expect(updatedClient.balance).toBeLessThan(currentClientBalance);
+  });
+
+  it('should not be able to pay a job that it is already paid', async () => {
+    // Arrange
+    const useCase = new PayForAJobUseCase(repositoryFactory);
+
+    const client = createProfileFake({ balance: 100, type: ProfileTypeEnum.CLIENT });
+    const contractor = createProfileFake({ balance: 50, type: ProfileTypeEnum.CONTRACTOR });
+    await Promise.all([profileRepository.create(client), profileRepository.create(contractor)]);
+
+    const contract = createContractFake({ clientId: client.id, contractorId: contractor.id });
+    await contractRepository.create(contract);
+
+    const job = createJobFake({ paid: JobPaidEnum.YES, paymentDate: new Date(), price: 50, contractId: contract.id });
+    await jobRepository.create(job);
+
+    try {
+      // Act
+      await useCase.execute(job.id);
+    } catch (error) {
+      // Assert
+      expect(error).toBeDefined();
+    }
   });
 });
