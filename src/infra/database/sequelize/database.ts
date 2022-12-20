@@ -28,10 +28,10 @@ export class SequelizeDatabase implements DatabaseConnection {
         this.models[key].associate();
       });
 
-    // const env = process.env.NODE_ENV || 'development';
-    // if (env === 'test') {
-    //   await this.sequelize.sync({ force: true });
-    // }
+    const env = process.env.NODE_ENV || 'development';
+    if (env === 'test') {
+      await this.sequelize.sync({ force: true });
+    }
   }
 
   async sync() {

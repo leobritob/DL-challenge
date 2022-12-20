@@ -10,10 +10,10 @@ export class ContractRepositoryMemory implements ContractRepository {
     this.contracts = this.database.getModels().contracts;
   }
 
-  findAll(params?: Partial<{ status: ContractStatusEnum[]; clientId: string }>): Promise<Contract[]> {
+  findAll(params?: Partial<{ status: ContractStatusEnum[]; profileId: string }>): Promise<Contract[]> {
     let result = [...this.contracts];
-    if (params?.clientId) {
-      result = result.filter((c) => c.clientId === params.clientId);
+    if (params?.profileId) {
+      result = result.filter((c) => c.clientId === params.profileId || c.contractorId === params.profileId);
     }
     if (params?.status?.length) {
       result = result.filter((c) => params!.status!.includes(c.status));
@@ -26,8 +26,10 @@ export class ContractRepositoryMemory implements ContractRepository {
     return Promise.resolve(contract);
   }
 
-  findOneById(id: string): Promise<Contract> {
-    const contract = this.contracts.find((c) => c.id === id);
+  findOneById(id: string, profileId: string): Promise<Contract> {
+    const contract = this.contracts.find(
+      (c) => c.id === id && (c.clientId === profileId || c.contractorId === profileId)
+    );
     if (!contract) {
       throw new Error('Contract not found');
     }

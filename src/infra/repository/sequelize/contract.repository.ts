@@ -1,3 +1,4 @@
+import { Op } from 'sequelize';
 import { Contract } from '../../../domain/entity/contract/contract';
 import { ContractStatusEnum } from '../../../domain/entity/contract/contract-status.enum';
 import { ContractRepository } from '../../../domain/repository/contract.repository';
@@ -11,13 +12,21 @@ export class SequelizeContractRepository implements ContractRepository {
     this.model = this.database.getModels().ContractModel;
   }
 
-  async findAll(params?: Partial<{ status: ContractStatusEnum[]; clientId: string }> | undefined): Promise<Contract[]> {
-    const where: any = {};
+  async findAll(
+    params?: Partial<{ status: ContractStatusEnum[]; profileId: string }> | undefined
+  ): Promise<Contract[]> {
+    let where: any = {};
     if (params?.status) {
-      where.status = params.status;
+      where = { ...where, status: params.status };
     }
-    if (params?.clientId) {
-      where.clientId = params.clientId;
+    if (params?.profileId) {
+      where = {
+        ...where,
+        [Op.or]: {
+          clientId: params.profileId,
+          contractorId: params.profileId,
+        },
+      };
     }
     const res = await this.model.findAll({ where });
     return res.map((item) => {
@@ -52,8 +61,15 @@ export class SequelizeContractRepository implements ContractRepository {
     return data;
   }
 
-  async findOneById(id: string): Promise<Contract> {
-    const res = await this.model.findByPk(id, {
+  async findOneById(id: string, profileId: string): Promise<Contract> {
+    const res = await this.model.findOne({
+      where: {
+        id,
+        [Op.or]: {
+          clientId: profileId,
+          contractorId: profileId,
+        },
+      },
       include: [
         { association: ContractModel.Client, as: 'Client' },
         { association: ContractModel.Contractor, as: 'Contractor' },

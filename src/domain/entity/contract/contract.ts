@@ -29,8 +29,4 @@ export class Contract {
     this.client = client;
     this.contractor = contractor;
   }
-
-  getIsActive() {
-    return this.status === ContractStatusEnum.IN_PROGRESS;
-  }
 }

@@ -9,9 +9,9 @@ export class FindAllContractsUseCase {
     this.contractRepository = this.repositoryFactory.createContractRepository();
   }
 
-  async execute(clientId: string) {
-    return await this.contractRepository.findAll({
-      clientId,
+  async execute(profileId: string) {
+    return this.contractRepository.findAll({
+      profileId,
       status: [ContractStatusEnum.IN_PROGRESS, ContractStatusEnum.NEW],
     });
   }
