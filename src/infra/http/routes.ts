@@ -1,10 +1,9 @@
-import { Request, Response } from 'express';
 import { RepositoryFactory } from '../../domain/repository/repository.factory';
 import { AdminController } from '../controller/admin.controller';
 import { ContractController } from '../controller/contract.controller';
 import { JobController } from '../controller/job.controller';
 import { ProfileController } from '../controller/profile.controller';
-import { Http, HttpRequest, HttpRequestWithProfile, HttpResponse } from './http';
+import { Http, HttpRequestWithProfile, HttpResponse } from './http';
 
 export class Routes {
   constructor(private readonly http: Http, private readonly repositoryFactory: RepositoryFactory) {
