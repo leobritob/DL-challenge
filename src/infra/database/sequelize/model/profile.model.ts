@@ -5,7 +5,7 @@ export class ProfileModel extends Model {
     return this.init(
       {
         id: {
-          type: Sequelize.UUIDV4,
+          type: Sequelize.UUID,
           primaryKey: true,
           allowNull: false,
           unique: true,
@@ -24,9 +24,12 @@ export class ProfileModel extends Model {
         },
         balance: {
           type: Sequelize.DECIMAL(12, 2),
+          allowNull: false,
+          defaultValue: 0,
         },
         type: {
           type: Sequelize.ENUM('client', 'contractor'),
+          allowNull: false,
         },
       },
       { sequelize, modelName: 'Profile' }

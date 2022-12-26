@@ -24,7 +24,7 @@ export class SequelizeJobRepository implements JobRepository {
         id: data.id,
         description: data.description,
         price: data.price,
-        paid: data.paid,
+        paid: Boolean(data.paid),
         paymentDate: data.paymentDate,
         createdAt: data.createdAt,
         ContractId: data.contractId,
@@ -37,7 +37,7 @@ export class SequelizeJobRepository implements JobRepository {
   }
 
   async updateOneById(id: string, data: Partial<Job>) {
-    await this.model.update(data, { where: { id } });
+    await this.model.update({ ...data, paymentDate: new Date() }, { where: { id } });
   }
 
   async findAll(
@@ -45,7 +45,7 @@ export class SequelizeJobRepository implements JobRepository {
   ): Promise<Job[]> {
     const where: any = {};
     if (typeof params?.paid !== 'undefined') {
-      where.paid = params.paid;
+      where.paid = Boolean(params.paid);
     }
     const includeWhere: any = {};
     if (params?.clientId) {
@@ -68,7 +68,7 @@ export class SequelizeJobRepository implements JobRepository {
       return new Job({
         id: item.dataValues.id,
         description: item.dataValues.description,
-        price: item.dataValues.price,
+        price: Number(item.dataValues.price),
         paid: item.dataValues.paid,
         paymentDate: item.dataValues.paymentDate,
         createdAt: item.dataValues.createdAt,
@@ -96,7 +96,7 @@ export class SequelizeJobRepository implements JobRepository {
       description: res.dataValues.description,
       paid: res.dataValues.paid,
       paymentDate: res.dataValues.paymentDate,
-      price: res.dataValues.price,
+      price: Number(res.dataValues.price),
       createdAt: res.dataValues.createdAt,
       updatedAt: res.dataValues.updatedAt,
       contractId: res.dataValues.Contract.id,
@@ -125,12 +125,12 @@ export class SequelizeJobRepository implements JobRepository {
 
     const res = await this.model.findAll({
       attributes: [[this.db.fn('sum', this.db.col('price')), 'earned']],
-      group: ['Contract.id'],
+      group: ['Contract.id', 'Contract.Contractor.id'],
       include: [
         {
           association: JobModel.Contract,
           as: 'Contract',
-          attributes: [],
+          attributes: ['id'],
           include: [{ association: ContractModel.Contractor, as: 'Contractor', attributes: ['profession'] }],
         },
       ],
@@ -143,7 +143,7 @@ export class SequelizeJobRepository implements JobRepository {
     return res.map((item: any) => {
       return {
         profession: item['Contract.Contractor.profession'],
-        earned: item.earned,
+        earned: Number(item.earned),
       };
     });
   }
@@ -160,13 +160,13 @@ export class SequelizeJobRepository implements JobRepository {
     }
 
     const res = await this.model.findAll({
-      attributes: ['id', [this.db.fn('sum', this.db.col('price')), 'earned']],
-      group: ['Contract.id'],
+      attributes: [[this.db.fn('sum', this.db.col('price')), 'earned']],
+      group: ['Contract.id', 'Contract.Client.id'],
       include: [
         {
           association: JobModel.Contract,
           as: 'Contract',
-          attributes: [],
+          attributes: ['id'],
           include: [{ association: ContractModel.Client, as: 'Client', attributes: ['firstName', 'lastName'] }],
         },
       ],
@@ -179,7 +179,7 @@ export class SequelizeJobRepository implements JobRepository {
     return res.map((item: any) => ({
       id: item.id,
       fullName: `${item['Contract.Client.firstName']} ${item['Contract.Client.lastName']}`,
-      paid: item.earned,
+      paid: Number(item.earned),
     }));
   }
 }

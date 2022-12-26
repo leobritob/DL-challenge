@@ -23,8 +23,8 @@ export class SequelizeContractRepository implements ContractRepository {
       where = {
         ...where,
         [Op.or]: {
-          clientId: params.profileId,
-          contractorId: params.profileId,
+          ClientId: params.profileId,
+          ContractorId: params.profileId,
         },
       };
     }
@@ -66,8 +66,8 @@ export class SequelizeContractRepository implements ContractRepository {
       where: {
         id,
         [Op.or]: {
-          clientId: profileId,
-          contractorId: profileId,
+          ClientId: profileId,
+          ContractorId: profileId,
         },
       },
       include: [

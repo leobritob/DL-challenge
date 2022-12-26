@@ -15,7 +15,7 @@ export class Profile {
     this.firstName = firstName;
     this.lastName = lastName;
     this.profession = profession;
-    this.balance = balance;
+    this.balance = Number(balance);
     this.type = type;
   }
 }

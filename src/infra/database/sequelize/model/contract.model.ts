@@ -18,7 +18,7 @@ export class ContractModel extends Model {
     return ContractModel.init(
       {
         id: {
-          type: Sequelize.UUIDV4,
+          type: Sequelize.UUID,
           primaryKey: true,
           allowNull: false,
           unique: true,

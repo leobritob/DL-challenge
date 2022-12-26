@@ -12,7 +12,7 @@ export class JobModel extends Model {
     return this.init(
       {
         id: {
-          type: Sequelize.UUIDV4,
+          type: Sequelize.UUID,
           primaryKey: true,
           allowNull: false,
           unique: true,
@@ -32,6 +32,7 @@ export class JobModel extends Model {
         paymentDate: {
           type: Sequelize.DATE,
           allowNull: true,
+          defaultValue: null,
         },
       },
       { sequelize, modelName: 'Job' }

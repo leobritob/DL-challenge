@@ -7,7 +7,6 @@ export class GetProfileMiddleware implements HttpMiddleware {
   static paths: MiddlewarePath[] = [
     { method: 'get', path: '/api/v1/contracts' },
     { method: 'post', path: '/api/v1/contracts' },
-    { method: 'post', path: '/api/v1/profiles' },
     { method: 'get', path: '/api/v1/contracts/:id' },
     { method: 'get', path: '/api/v1/jobs/unpaid' },
     { method: 'post', path: '/api/v1/jobs/:id/pay' },
