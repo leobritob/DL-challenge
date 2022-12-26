@@ -82,4 +82,41 @@ describe('PayForAJobUseCase', () => {
       expect(error).toBeDefined();
     }
   });
+
+  it('should throw an exception when job is not exists', async () => {
+    // Arrange
+    const useCase = new PayForAJobUseCase(repositoryFactory);
+    const jobId = 'nonexistent-job-id';
+
+    // Act
+    try {
+      const res = await useCase.execute(jobId);
+    } catch (error) {
+      // Assert
+      expect(error).toBeDefined();
+    }
+  });
+
+  it("should throw an exception when client's balance is not enough to pay for the job", async () => {
+    // Arrange
+    const useCase = new PayForAJobUseCase(repositoryFactory);
+
+    const client = createProfileFake({ balance: 49, type: ProfileTypeEnum.CLIENT });
+    const contractor = createProfileFake({ balance: 50, type: ProfileTypeEnum.CONTRACTOR });
+    await Promise.all([profileRepository.create(client), profileRepository.create(contractor)]);
+
+    const contract = createContractFake({ clientId: client.id, contractorId: contractor.id });
+    await contractRepository.create(contract);
+
+    const job = createJobFake({ paid: JobPaidEnum.NO, paymentDate: new Date(), price: 50, contractId: contract.id });
+    await jobRepository.create(job);
+
+    // Act
+    try {
+      await useCase.execute(job.id);
+    } catch (error) {
+      // Assert
+      expect(error).toBeDefined();
+    }
+  });
 });

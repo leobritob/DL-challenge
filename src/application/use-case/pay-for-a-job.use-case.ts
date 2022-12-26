@@ -14,9 +14,6 @@ export class PayForAJobUseCase {
 
   async execute(jobId: string) {
     const job = await this.jobRepository.findOneById(jobId);
-    if (!job) {
-      throw new Error('Job not found');
-    }
     if (job.paid) {
       throw new Error('This job is already paid');
     }

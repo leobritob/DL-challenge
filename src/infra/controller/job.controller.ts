@@ -29,8 +29,8 @@ export class JobController {
   async pay(req: HttpRequest, res: HttpResponse) {
     const useCase = new PayForAJobUseCase(this.repositoryFactory);
     try {
-      const job = await useCase.execute(req.params.id);
-      return res.status(200).json({ job });
+      await useCase.execute(req.params.id);
+      return res.status(204).end();
     } catch (error) {
       return res.status(400).json({ error: true, message: error.message });
     }

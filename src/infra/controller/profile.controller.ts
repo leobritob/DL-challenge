@@ -11,8 +11,8 @@ export class ProfileController {
   async create(req: HttpRequest, res: HttpResponse) {
     try {
       const useCase = new CreateProfileUseCase(this.repositoryFactory);
-      const client = await useCase.execute(new Profile(req.body as ProfileInterface));
-      return res.status(200).json({ client });
+      const profile = await useCase.execute(new Profile(req.body as ProfileInterface));
+      return res.status(200).json({ profile });
     } catch (error) {
       return res.status(400).json({ error: true, message: error.message });
     }
