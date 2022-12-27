@@ -3,6 +3,7 @@ import { SequelizeRepositoryFactory } from './infra/database/sequelize/repositor
 import { ExpressHttp } from './infra/http/express';
 import { Routes } from './infra/http/routes';
 import * as dotenv from 'dotenv';
+import { RabbitMQAdapter } from './infra/queue/rabbitmq.queue';
 dotenv.config();
 
 export async function main() {
@@ -12,8 +13,10 @@ export async function main() {
     await database.sync();
   }
   const repositoryFactory = new SequelizeRepositoryFactory(database);
+  const queue = new RabbitMQAdapter();
+  await queue.connect();
   const http = new ExpressHttp(repositoryFactory);
-  new Routes(http, repositoryFactory);
+  new Routes(http, repositoryFactory, queue);
   http.listen(Number(process.env.HTTP_PORT));
 }
 

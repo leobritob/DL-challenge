@@ -27,10 +27,6 @@ export class ProfileRepositoryMemory implements ProfileRepository {
     if (profileIndex < 0 || !this.profiles[profileIndex]) {
       throw new Error('Profile not found');
     }
-    this.profiles[profileIndex].firstName = data.firstName;
-    this.profiles[profileIndex].lastName = data.lastName;
-    this.profiles[profileIndex].profession = data.profession;
-    this.profiles[profileIndex].balance = data.balance;
-    this.profiles[profileIndex].type = data.type;
+    this.profiles[profileIndex] = { ...this.profiles[profileIndex], ...data };
   }
 }

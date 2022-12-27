@@ -1,13 +1,14 @@
-import { JobPaidEnum } from '../../domain/entity/job/job-paid.enum';
+import { PayForAJobEvent } from '../../domain/event/pay-for-a-job/pay-for-a-job.event';
 import { JobRepository } from '../../domain/repository/job.repository';
 import { ProfileRepository } from '../../domain/repository/profile.repository';
 import { RepositoryFactory } from '../../domain/repository/repository.factory';
+import { Queue } from '../../infra/queue/queue';
 
 export class PayForAJobUseCase {
   jobRepository: JobRepository;
   profileRepository: ProfileRepository;
 
-  constructor(private readonly repositoryFactory: RepositoryFactory) {
+  constructor(private readonly repositoryFactory: RepositoryFactory, private readonly queue: Queue) {
     this.jobRepository = this.repositoryFactory.createJobRepository();
     this.profileRepository = this.repositoryFactory.createProfileRepository();
   }
@@ -22,13 +23,7 @@ export class PayForAJobUseCase {
     }
 
     const { client, contractor } = job.contract;
-    const contractorBalance = contractor.balance + job.price;
-    const clientBalance = client.balance - job.price;
-
-    await Promise.all([
-      this.profileRepository.updateById(client.id, { balance: clientBalance }),
-      this.profileRepository.updateById(contractor.id, { balance: contractorBalance }),
-      this.jobRepository.updateOneById(jobId, { paid: JobPaidEnum.YES }),
-    ]);
+    const event = new PayForAJobEvent({ jobId, clientId: client.id, contractorId: contractor.id });
+    await this.queue.publish(event);
   }
 }

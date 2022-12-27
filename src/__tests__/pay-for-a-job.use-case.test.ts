@@ -8,11 +8,14 @@ import { RepositoryFactory } from '../domain/repository/repository.factory';
 import { DatabaseConnection } from '../infra/database/database';
 import { MemoryDatabase } from '../infra/database/memory/database';
 import { MemoryRepositoryFactory } from '../infra/database/memory/repository.factory';
+import { MemoryQueueAdapter } from '../infra/queue/memory.queue';
+import { Queue } from '../infra/queue/queue';
 import { createContractFake } from './helper/create-contract.fake';
 import { createJobFake } from './helper/create-job.fake';
 import { createProfileFake } from './helper/create-profile.fake';
 
 describe('PayForAJobUseCase', () => {
+  let queue: Queue;
   let database: DatabaseConnection;
   let repositoryFactory: RepositoryFactory;
   let jobRepository: JobRepository;
@@ -20,6 +23,8 @@ describe('PayForAJobUseCase', () => {
   let contractRepository: ContractRepository;
 
   beforeAll(async () => {
+    queue = new MemoryQueueAdapter();
+    await queue.connect();
     database = new MemoryDatabase();
     await database.connect();
   });
@@ -34,12 +39,12 @@ describe('PayForAJobUseCase', () => {
 
   it('should be able to pay a job for an user', async () => {
     // Arrange
-    const useCase = new PayForAJobUseCase(repositoryFactory);
+    const useCase = new PayForAJobUseCase(repositoryFactory, queue);
+    const publish = jest.fn();
+    jest.spyOn(queue, 'publish').mockImplementationOnce(publish);
 
     const client = createProfileFake({ balance: 100, type: ProfileTypeEnum.CLIENT });
-    const currentClientBalance = client.balance;
     const contractor = createProfileFake({ balance: 50, type: ProfileTypeEnum.CONTRACTOR });
-    const currentContractorBalance = contractor.balance;
     await Promise.all([profileRepository.create(client), profileRepository.create(contractor)]);
 
     const contract = createContractFake({ clientId: client.id, contractorId: contractor.id });
@@ -52,17 +57,12 @@ describe('PayForAJobUseCase', () => {
     await useCase.execute(job.id);
 
     // Assert
-    const [updatedClient, updatedContractor] = await Promise.all([
-      profileRepository.findOneById(client.id),
-      profileRepository.findOneById(contractor.id),
-    ]);
-    expect(updatedContractor.balance).toBeGreaterThan(currentContractorBalance);
-    expect(updatedClient.balance).toBeLessThan(currentClientBalance);
+    expect(queue.publish).toHaveBeenCalledTimes(1);
   });
 
   it('should not be able to pay a job that it is already paid', async () => {
     // Arrange
-    const useCase = new PayForAJobUseCase(repositoryFactory);
+    const useCase = new PayForAJobUseCase(repositoryFactory, queue);
 
     const client = createProfileFake({ balance: 100, type: ProfileTypeEnum.CLIENT });
     const contractor = createProfileFake({ balance: 50, type: ProfileTypeEnum.CONTRACTOR });
@@ -85,12 +85,12 @@ describe('PayForAJobUseCase', () => {
 
   it('should throw an exception when job is not exists', async () => {
     // Arrange
-    const useCase = new PayForAJobUseCase(repositoryFactory);
+    const useCase = new PayForAJobUseCase(repositoryFactory, queue);
     const jobId = 'nonexistent-job-id';
 
     // Act
     try {
-      const res = await useCase.execute(jobId);
+      await useCase.execute(jobId);
     } catch (error) {
       // Assert
       expect(error).toBeDefined();
@@ -99,7 +99,7 @@ describe('PayForAJobUseCase', () => {
 
   it("should throw an exception when client's balance is not enough to pay for the job", async () => {
     // Arrange
-    const useCase = new PayForAJobUseCase(repositoryFactory);
+    const useCase = new PayForAJobUseCase(repositoryFactory, queue);
 
     const client = createProfileFake({ balance: 49, type: ProfileTypeEnum.CLIENT });
     const contractor = createProfileFake({ balance: 50, type: ProfileTypeEnum.CONTRACTOR });
