@@ -1,3 +1,4 @@
+import { validate, validateOrReject } from 'class-validator';
 import { CreateJobUseCase } from '../../application/use-case/create-job.use-case';
 import { FindUnpaidJobsUseCase } from '../../application/use-case/find-unpaid-jobs.use-case';
 import { PayForAJobProcessorUseCase } from '../../application/use-case/pay-for-a-job-processor.use-case';
@@ -7,6 +8,8 @@ import { PayForAJobEvent } from '../../domain/event/pay-for-a-job/pay-for-a-job.
 import { RepositoryFactory } from '../../domain/repository/repository.factory';
 import { HttpRequest, HttpResponse } from '../http/http';
 import { Queue } from '../queue/queue';
+import { CreateJobDto } from './dto/create-job.dto';
+import { PayForAJobDto } from './dto/pay-for-a-job.dto';
 
 export class JobController {
   constructor(private readonly repositoryFactory: RepositoryFactory, private readonly queue: Queue) {
@@ -17,31 +20,19 @@ export class JobController {
   }
 
   async create(req: HttpRequest, res: HttpResponse) {
-    try {
-      const useCase = new CreateJobUseCase(this.repositoryFactory);
-      const job = await useCase.execute(
-        new Job({
-          description: req.body.description,
-          price: req.body.price,
-          paid: req.body.paid,
-          paymentDate: req.body.paymentDate,
-          contractId: req.body.contractId,
-        })
-      );
-      return res.status(200).json({ job });
-    } catch (error) {
-      return res.status(400).json({ error: true, message: error.message });
-    }
+    const useCase = new CreateJobUseCase(this.repositoryFactory);
+    const data = new CreateJobDto(req.body);
+    await validateOrReject(data);
+    const job = await useCase.execute(new Job(data));
+    return res.status(200).json({ job });
   }
 
   async pay(req: HttpRequest, res: HttpResponse) {
-    try {
-      const useCase = new PayForAJobUseCase(this.repositoryFactory, this.queue);
-      await useCase.execute(req.params.id);
-      return res.status(204).end();
-    } catch (error) {
-      return res.status(400).json({ error: true, message: error.message });
-    }
+    const useCase = new PayForAJobUseCase(this.repositoryFactory, this.queue);
+    const data = new PayForAJobDto({ id: req.params.id });
+    await validateOrReject(data);
+    await useCase.execute(data.id);
+    return res.status(204).end();
   }
 
   async unpaid(req: HttpRequest, res: HttpResponse) {

@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "amqplib": "^0.10.3",
+    "class-validator": "^0.14.0",
     "dotenv": "^16.0.3",
     "express": "^4.17.1",
     "helmet": "^6.0.1",

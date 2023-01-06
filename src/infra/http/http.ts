@@ -1,6 +1,7 @@
 import { ProfileInterface } from '../../domain/entity/profile/profile.interface';
 
 export interface Http {
+  catchAllErrors(): void;
   listen(port: number): void;
   route(
     method: string,
@@ -24,4 +25,4 @@ export type HttpResponse = {
   end: () => HttpResponse;
 };
 
-export type HttpNext = VoidFunction;
+export type HttpNext = VoidFunction | ((args?: any) => void);

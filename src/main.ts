@@ -18,6 +18,7 @@ export async function main() {
   await queue.connect();
   const http = new ExpressHttp(repositoryFactory);
   new Routes(http, repositoryFactory, queue);
+  http.catchAllErrors();
   http.listen(Number(process.env.HTTP_PORT));
 }
 
