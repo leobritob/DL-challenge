@@ -13,7 +13,7 @@ export interface JobRepository {
     }>
   ): Promise<Job[]>;
   findOneById(id: string): Promise<Job>;
-  updateOneById(id: string, data: Partial<Job>, params: { transaction: any }): Promise<void>;
+  updateOneById(id: string, data: Partial<Job>, params?: { transaction: any }): Promise<void>;
   bestProfession(
     params?: Partial<{ start: Date; end: Date; limit: number }>
   ): Promise<{ profession: string; earned: number }[]>;

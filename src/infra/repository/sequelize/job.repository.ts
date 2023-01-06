@@ -41,7 +41,7 @@ export class SequelizeJobRepository implements JobRepository {
   }
 
   async updateOneById(id: string, data: Partial<Job>, params: { transaction: any }) {
-    await this.model.update({ ...data, paymentDate: new Date() }, { where: { id }, transaction: params.transaction });
+    await this.model.update({ ...data, paymentDate: new Date() }, { where: { id }, transaction: params?.transaction });
   }
 
   async findAll(

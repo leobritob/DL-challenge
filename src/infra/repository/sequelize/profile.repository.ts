@@ -38,6 +38,6 @@ export class SequelizeProfileRepository implements ProfileRepository {
   }
 
   async updateById(id: string, data: Partial<Profile>, params: { transaction: any }): Promise<void> {
-    await this.model.update(data, { where: { id }, transaction: params.transaction });
+    await this.model.update(data, { where: { id }, transaction: params?.transaction });
   }
 }

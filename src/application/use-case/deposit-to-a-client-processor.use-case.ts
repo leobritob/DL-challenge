@@ -13,15 +13,8 @@ export class DepositToAClientProcessorUseCase {
   }
 
   async execute(params: DepositToAClientEventParams) {
-    const transaction = await this.profileRepository.getTransaction();
-    try {
-      const profile = await this.profileRepository.findOneById(params.clientId);
-      const balance = profile.balance + params.amount;
-      await this.profileRepository.updateById(params.clientId, { balance }, { transaction });
-
-      await transaction.commit();
-    } catch (error) {
-      await transaction.rollback();
-    }
+    const profile = await this.profileRepository.findOneById(params.clientId);
+    const balance = profile.balance + params.amount;
+    await this.profileRepository.updateById(params.clientId, { balance });
   }
 }
