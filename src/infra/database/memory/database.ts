@@ -7,6 +7,10 @@ export class MemoryDatabase implements DatabaseConnection {
     jobs: [],
   };
 
+  async migrations() {}
+
+  async seeds() {}
+
   connect(): Promise<any> {
     return Promise.resolve(true);
   }

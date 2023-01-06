@@ -23,6 +23,7 @@ export class RabbitMQAdapter implements Queue {
       eventName,
       (message) => {
         callback(JSON.parse(message.content.toString()));
+        console.log(`🎉 [${eventName}] A message has been consumed`);
       },
       { noAck: true }
     );

@@ -3,4 +3,6 @@ export interface DatabaseConnection {
   getDB(): any;
   getModels(): any;
   sync(): Promise<any>;
+  migrations(): Promise<any>;
+  seeds(): Promise<any>;
 }

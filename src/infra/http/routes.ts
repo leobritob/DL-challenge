@@ -45,10 +45,10 @@ export class Routes {
         return profileController.depositToAClient(req, res);
       }
     );
-    this.http.route('get', '/admin/best-profession', async (req: HttpRequestWithProfile, res: HttpResponse) => {
+    this.http.route('get', '/api/v1/admin/best-profession', async (req: HttpRequestWithProfile, res: HttpResponse) => {
       return adminController.bestProfession(req, res);
     });
-    this.http.route('get', '/admin/best-clients', async (req: HttpRequestWithProfile, res: HttpResponse) => {
+    this.http.route('get', '/api/v1/admin/best-clients', async (req: HttpRequestWithProfile, res: HttpResponse) => {
       return adminController.bestClients(req, res);
     });
   }

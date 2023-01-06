@@ -10,8 +10,7 @@ import { Queue } from '../queue/queue';
 
 export class JobController {
   constructor(private readonly repositoryFactory: RepositoryFactory, private readonly queue: Queue) {
-    this.queue.consume(PayForAJobEvent.name, ({ name, params }: PayForAJobEvent) => {
-      console.log(`[${name}] A message has been consumed`);
+    this.queue.consume(PayForAJobEvent.name, ({ params }: PayForAJobEvent) => {
       const useCase = new PayForAJobProcessorUseCase(this.repositoryFactory);
       useCase.execute(params);
     });

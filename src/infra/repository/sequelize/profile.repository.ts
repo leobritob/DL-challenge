@@ -5,9 +5,15 @@ import { ProfileModel } from '../../database/sequelize/model/profile.model';
 
 export class SequelizeProfileRepository implements ProfileRepository {
   model: typeof ProfileModel;
+  db: any;
 
   constructor(private readonly database: DatabaseConnection) {
     this.model = this.database.getModels().ProfileModel;
+    this.db = this.database.getDB();
+  }
+
+  async getTransaction() {
+    return this.db.transaction();
   }
 
   async create(data: Profile): Promise<Profile> {
@@ -31,7 +37,7 @@ export class SequelizeProfileRepository implements ProfileRepository {
     return new Profile(profile);
   }
 
-  async updateById(id: string, data: Partial<Profile>): Promise<void> {
-    await this.model.update(data, { where: { id } });
+  async updateById(id: string, data: Partial<Profile>, params: { transaction: any }): Promise<void> {
+    await this.model.update(data, { where: { id }, transaction: params.transaction });
   }
 }

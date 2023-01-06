@@ -16,6 +16,10 @@ export class DepositToAClientUseCase {
   }
 
   async execute(clientId: string, amount: number) {
+    if (amount <= 0) {
+      throw new Error('Amount must be more than 0');
+    }
+
     const jobs = await this.jobRepository.findAll({
       paid: JobPaidEnum.YES,
       contractStatus: [ContractStatusEnum.NEW, ContractStatusEnum.IN_PROGRESS],

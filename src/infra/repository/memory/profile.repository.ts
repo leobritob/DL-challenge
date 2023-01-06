@@ -9,6 +9,10 @@ export class ProfileRepositoryMemory implements ProfileRepository {
     this.profiles = this.database.getModels().profiles;
   }
 
+  getTransaction() {
+    return { commit: () => {}, rollback: () => {} };
+  }
+
   create(data: Profile): Promise<Profile> {
     this.profiles.push(data);
     return Promise.resolve(data);

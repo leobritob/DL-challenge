@@ -1,8 +1,8 @@
-version: '3.8'
+version: '3.9'
 
 services:
-  dl_database:
-    container_name: dl_database
+  contract_app_database:
+    container_name: contract_app_database
     image: postgres:12.13-alpine
     restart: always
     ports:
@@ -13,12 +13,14 @@ services:
       - POSTGRES_USER=${DB_USERNAME}
       - POSTGRES_DB=${DB_DATABASE}
     volumes:
-      - dl_database_volume:/var/lib/postgresql/data
+      - contract_app_database_volume:/var/lib/postgresql/data
     networks:
-      - dl_default_network
+      - contract_app_default_network
 
-  dl_app:
-    container_name: dl_nodejsdock
+  contract_app_app:
+    depends_on:
+      - contract_app_database
+    container_name: contract_app_nodejsdock
     build:
       context: ./Docker
       dockerfile: Dockerfile-app
@@ -26,12 +28,12 @@ services:
     ports:
       - ${HTTP_PORT}:3001
     volumes:
-      - .:/home/dl_app
+      - .:/home/contract_app_app
     networks:
-      - dl_default_network
+      - contract_app_default_network
 
-  dl_queue:
-    container_name: dl_queue
+  contract_app_queue:
+    container_name: contract_app_queue
     build:
       context: ./Docker
       dockerfile: Dockerfile-queue
@@ -41,7 +43,7 @@ services:
       - 15672:15672
 
 volumes:
-  dl_database_volume:
+  contract_app_database_volume:
 
 networks:
-  dl_default_network:
+  contract_app_default_network:

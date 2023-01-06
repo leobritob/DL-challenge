@@ -17,6 +17,10 @@ export class JobRepositoryMemory implements JobRepository {
     this.contracts = this.database.getModels().contracts;
   }
 
+  getTransaction() {
+    return { commit: () => {}, rollback: () => {} };
+  }
+
   create(job: Job): Promise<Job> {
     this.jobs.push(job);
     return Promise.resolve(job);

@@ -2,6 +2,7 @@ import { DatabaseConnection } from '../database';
 import path from 'path';
 import { Sequelize, Options } from 'sequelize';
 import { SequelizeModels } from './model';
+import { SequelizeSeeds } from './seed';
 
 export class SequelizeDatabase implements DatabaseConnection {
   models: typeof SequelizeModels;
@@ -21,7 +22,6 @@ export class SequelizeDatabase implements DatabaseConnection {
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
     };
-    console.log("🚀 ~ file: database.ts:26 ~ SequelizeDatabase ~ connect ~ options", options);
 
     if (process.env.NODE_ENV === 'test') {
       options = {
@@ -50,6 +50,16 @@ export class SequelizeDatabase implements DatabaseConnection {
 
   async sync() {
     await this.sequelize.sync({ force: true });
+  }
+
+  async migrations(): Promise<any> {
+    
+  }
+
+  async seeds(): Promise<any> {
+    const seeds = new SequelizeSeeds(this);
+    await seeds.run();
+    console.log(`🎉 Database seed successfully inserted`);
   }
 
   getDB() {

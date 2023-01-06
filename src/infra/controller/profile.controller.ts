@@ -10,8 +10,7 @@ import { Queue } from '../queue/queue';
 
 export class ProfileController {
   constructor(private readonly repositoryFactory: RepositoryFactory, private readonly queue: Queue) {
-    this.queue.consume(DepositToAClientEvent.name, ({ name, params }: DepositToAClientEvent) => {
-      console.log(`[${name}] A message has been consumed`);
+    this.queue.consume(DepositToAClientEvent.name, ({ params }: DepositToAClientEvent) => {
       const useCase = new DepositToAClientProcessorUseCase(this.repositoryFactory);
       useCase.execute(params);
     });

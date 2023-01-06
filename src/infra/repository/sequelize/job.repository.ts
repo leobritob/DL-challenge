@@ -18,6 +18,10 @@ export class SequelizeJobRepository implements JobRepository {
     this.db = this.database.getDB();
   }
 
+  async getTransaction() {
+    return this.db.transaction();
+  }
+
   async create(data: Job): Promise<Job> {
     await this.model.create(
       {
@@ -36,8 +40,8 @@ export class SequelizeJobRepository implements JobRepository {
     return data;
   }
 
-  async updateOneById(id: string, data: Partial<Job>) {
-    await this.model.update({ ...data, paymentDate: new Date() }, { where: { id } });
+  async updateOneById(id: string, data: Partial<Job>, params: { transaction: any }) {
+    await this.model.update({ ...data, paymentDate: new Date() }, { where: { id }, transaction: params.transaction });
   }
 
   async findAll(

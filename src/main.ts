@@ -11,6 +11,7 @@ export async function main() {
   await database.connect();
   if (process.env.DB_SYNC === 'true') {
     await database.sync();
+    await database.seeds();
   }
   const repositoryFactory = new SequelizeRepositoryFactory(database);
   const queue = new RabbitMQAdapter();
